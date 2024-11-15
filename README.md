@@ -7,6 +7,7 @@ Ensure the following are installed on your system before proceeding:
 - **PHP 8.2 or above**
 - **MySQL** 
 - **Composer**
+-  **Laravel 11**
 
 ## Installation and Setup
 
