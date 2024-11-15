@@ -11,7 +11,7 @@ class InvoiceController extends Controller
     // Display a listing of the invoices
     public function index()
     {
-        $invoices = Invoice::with('items')->get();
+        $invoices = Invoice::with(['items','client'])->get();
         return response()->json($invoices);
     }
 
@@ -59,7 +59,7 @@ class InvoiceController extends Controller
     // Display a single invoice
     public function show($id)
     {
-        $invoice = Invoice::with('items')->findOrFail($id);
+        $invoice = Invoice::with(['items','client'])->findOrFail($id);
         return response()->json($invoice);
     }
 
@@ -115,13 +115,16 @@ class InvoiceController extends Controller
     }
     public function generatePdf($id)
     {
-        $invoice = Invoice::with('items')->findOrFail($id);
+        $invoice = Invoice::with(['items', 'client'])->findOrFail($id);
+    
         if (!$invoice) {
             return response()->json(['error' => 'Invoice not found'], 404);
         }
+    
         $pdf = PDF::loadView('pdf.invoice', compact('invoice'));
-
+    
         return $pdf->download('invoice_' . $invoice->invoice_number . '.pdf');
     }
+    
 
 }
