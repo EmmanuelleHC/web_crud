@@ -75,8 +75,9 @@ class InvoiceControllerTest extends TestCase
     public function test_update_modifies_invoice_items()
     {
         $this->withoutMiddleware();
-
+    
         $invoice = Invoice::factory()->hasItems(3)->create();
+    
         $newItems = [
             [
                 'item_id' => 4,
@@ -85,13 +86,21 @@ class InvoiceControllerTest extends TestCase
                 'unit_price' => 75.00,
             ],
         ];
-
-        $response = $this->putJson(route('invoices.update', $invoice->id), ['items' => $newItems]);
-
+    
+        $updatePayload = [
+            'invoice_date' => now()->toDateString(),
+            'items' => $newItems,
+        ];
+    
+        $response = $this->putJson(route('invoices.update', $invoice->id), $updatePayload);
+    
         $response->assertStatus(200);
+    
         $response->assertJsonFragment(['grand_total' => 150.00]);
+    
         $response->assertJsonCount(1, 'items');
     }
+    
 
     public function test_destroy_deletes_invoice()
     {

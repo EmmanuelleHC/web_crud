@@ -11,7 +11,9 @@ class InvoiceController extends Controller
     // Display a listing of the invoices
     public function index()
     {
-        $invoices = Invoice::with(['items','client'])->get();
+        $invoices = Invoice::with(['items', 'client' => function($query) {
+            $query->selectRaw("id,client_number,client_name, client_address,CONCAT(client_number, ' - ', client_name) AS client_display");
+        }])->get();
         return response()->json($invoices);
     }
 
@@ -64,10 +66,10 @@ class InvoiceController extends Controller
         $invoice = Invoice::with(['items','client'])->findOrFail($id);
         return response()->json($invoice);
     }
-
     public function update(Request $request, $id)
     {
         $request->validate([
+            'invoice_date' => 'required|date', 
             'items' => 'required|array',
             'items.*.item_id' => 'required|integer|distinct',
             'items.*.item_name' => 'required|string|distinct',
@@ -87,15 +89,24 @@ class InvoiceController extends Controller
         }
     
         $invoice->items()->delete();
-    
         foreach ($itemsData as $itemData) {
             $invoice->items()->create($itemData);
         }
     
-        $invoice->update(['grand_total' => $grandTotal]);
+        $invoice->update([
+            'grand_total' => $grandTotal,
+            'invoice_date' => $request->input('invoice_date'), 
+        ]);
     
-        return response()->json($invoice->load('items'));
+        $invoice->load('items', 'client');
+    
+        $invoice->client_display = $invoice->client
+            ? "{$invoice->client->client_number} - {$invoice->client->client_name}"
+            : null;
+    
+        return response()->json($invoice);
     }
+    
     
 
     // Delete an invoice
